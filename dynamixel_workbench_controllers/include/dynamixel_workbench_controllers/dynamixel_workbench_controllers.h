@@ -23,14 +23,14 @@
 
 #include <yaml-cpp/yaml.h>
 
-#include <sensor_msgs/JointState.h>
 #include <geometry_msgs/Twist.h>
+#include <sensor_msgs/JointState.h>
 #include <trajectory_msgs/JointTrajectory.h>
 #include <trajectory_msgs/JointTrajectoryPoint.h>
 
-#include <dynamixel_workbench_toolbox/dynamixel_workbench.h>
-#include <dynamixel_workbench_msgs/DynamixelStateList.h>
 #include <dynamixel_workbench_msgs/DynamixelCommand.h>
+#include <dynamixel_workbench_msgs/DynamixelStateList.h>
+#include <dynamixel_workbench_toolbox/dynamixel_workbench.h>
 
 #include <dynamixel_workbench_controllers/trajectory_generator.h>
 
@@ -43,15 +43,13 @@
 
 // #define DEBUG
 
-typedef struct
-{
+typedef struct {
   std::string item_name;
   int32_t value;
 } ItemValue;
 
-class DynamixelController
-{
- private:
+class DynamixelController {
+private:
   // ROS NodeHandle
   ros::NodeHandle node_handle_;
   ros::NodeHandle priv_node_handle_;
@@ -64,6 +62,7 @@ class DynamixelController
 
   // ROS Topic Subscriber
   ros::Subscriber cmd_vel_sub_;
+  ros::Subscriber single_motor_vel_sub_;
   ros::Subscriber trajectory_sub_;
 
   // ROS Service Server
@@ -75,7 +74,7 @@ class DynamixelController
   DynamixelWorkbench *dxl_wb_;
 
   std::map<std::string, uint32_t> dynamixel_;
-  std::map<std::string, const ControlItem*> control_items_;
+  std::map<std::string, const ControlItem *> control_items_;
   std::vector<std::pair<std::string, ItemValue>> dynamixel_info_;
   dynamixel_workbench_msgs::DynamixelStateList dynamixel_state_list_;
   sensor_msgs::JointState joint_state_msg_;
@@ -83,6 +82,7 @@ class DynamixelController
 
   bool is_joint_state_topic_;
   bool is_cmd_vel_topic_;
+  bool is_single_motor_topic_;
   bool use_moveit_;
 
   double wheel_separation_;
@@ -97,7 +97,7 @@ class DynamixelController
 
   bool is_moving_;
 
- public:
+public:
   DynamixelController();
   ~DynamixelController();
 
@@ -109,23 +109,26 @@ class DynamixelController
   bool initSDKHandlers(void);
   bool getPresentPosition(std::vector<std::string> dxl_name);
 
-  double getReadPeriod(){return read_period_;}
-  double getWritePeriod(){return write_period_;}
-  double getPublishPeriod(){return pub_period_;}
+  double getReadPeriod() { return read_period_; }
+  double getWritePeriod() { return write_period_; }
+  double getPublishPeriod() { return pub_period_; }
 
   void initPublisher(void);
   void initSubscriber(void);
 
   void initServer();
 
-  void readCallback(const ros::TimerEvent&);
-  void writeCallback(const ros::TimerEvent&);
-  void publishCallback(const ros::TimerEvent&);
+  void readCallback(const ros::TimerEvent &);
+  void writeCallback(const ros::TimerEvent &);
+  void publishCallback(const ros::TimerEvent &);
 
   void commandVelocityCallback(const geometry_msgs::Twist::ConstPtr &msg);
-  void trajectoryMsgCallback(const trajectory_msgs::JointTrajectory::ConstPtr &msg);
-  bool dynamixelCommandMsgCallback(dynamixel_workbench_msgs::DynamixelCommand::Request &req,
-                                   dynamixel_workbench_msgs::DynamixelCommand::Response &res);
+  void commandSingleMotorCallback(const geometry_msgs::Twist::ConstPtr &msg);
+  void
+  trajectoryMsgCallback(const trajectory_msgs::JointTrajectory::ConstPtr &msg);
+  bool dynamixelCommandMsgCallback(
+      dynamixel_workbench_msgs::DynamixelCommand::Request &req,
+      dynamixel_workbench_msgs::DynamixelCommand::Response &res);
 };
 
-#endif //DYNAMIXEL_WORKBENCH_CONTROLLERS_H
+#endif // DYNAMIXEL_WORKBENCH_CONTROLLERS_H
